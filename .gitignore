@@ -1,0 +1,7 @@
+**/dev.db
+**/recordings
+**/uploads
+dev.db
+**/.next
+**/node_modules
+**/dist
