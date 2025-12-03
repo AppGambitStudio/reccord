@@ -68,6 +68,7 @@ router.post('/', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'thumbna
                         ffmpeg(inputPath)
                             .input(watermarkPath)
                             .complexFilter([overlayFilter])
+                            .outputOptions('-preset ultrafast') // Speed up burn-in
                             .output(tempOutputPath)
                             .on('end', () => {
                                 // Replace original file with watermarked file

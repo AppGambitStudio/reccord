@@ -98,6 +98,14 @@ router.get('/:id/export', async (req, res) => {
             .format('mp4')
             .videoCodec('libx264')
             .audioCodec('aac')
+            .outputOptions('-preset medium') // Safer preset for stability
+            .outputOptions('-crf 23') // Reasonable quality
+            .outputOptions('-r 30') // Force Constant Frame Rate (CFR)
+            .outputOptions('-g 60') // Force keyframe every 2 seconds (at 30fps)
+            .outputOptions('-profile:v main') // High compatibility profile
+            .outputOptions('-level 3.1') // High compatibility level
+            .outputOptions('-vf scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p') // Ensure even dimensions and correct pixel format
+            .outputOptions('-movflags +faststart') // Enable fast start for web playback
             .on('end', () => {
                 console.log('Conversion finished');
                 res.download(outputPath, `${filename.replace('.webm', '')}.mp4`, (err) => {
