@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "reccord-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Backend for Reccord",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

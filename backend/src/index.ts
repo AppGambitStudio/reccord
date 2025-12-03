@@ -27,7 +27,7 @@ app.use('/api/recordings', recordingsRoute);
 app.use('/api/watermarks', watermarksRoute);
 
 app.get('/', (req, res) => {
-    res.send('Mini-Loom Backend is running');
+    res.send('Reccord Backend is running');
 });
 
 // Initialize DB and start server

@@ -1,6 +1,6 @@
-# Mini-Loom
+# Reccord
 
-Mini-Loom is a powerful, open-source local screen recording application built with modern web technologies. It allows you to capture your screen, microphone, and camera with ease, saving everything locally for privacy and speed.
+Reccord is a powerful, open-source local screen recording application built with modern web technologies. It allows you to capture your screen, microphone, and camera with ease, saving everything locally for privacy and speed.
 
 ## Features
 
@@ -66,7 +66,7 @@ npm run dev
 
 ## Commercial Support & Hosting
 
-Need a hosted version of Mini-Loom for your team? Or looking for custom features like:
+Need a hosted version of Reccord for your team? Or looking for custom features like:
 - ☁️ Cloud Storage & Sharing
 - 🔐 Team Authentication (SSO)
 - 📝 AI Transcriptions & Summaries
