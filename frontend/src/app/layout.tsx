@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "APPGAMBiT - Mini Loom",
-  description: "Mini Loom - Screen Recording Application",
+  title: "APPGAMBiT - Reccord",
+  description: "Reccord - Screen Recording Application",
 };
 
 export default function RootLayout({
