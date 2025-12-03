@@ -64,6 +64,16 @@ npm run dev
 - **Permissions**: You must allow camera/microphone access in your browser when prompted.
 - **Video Export**: Exporting uses FFmpeg. Ensure your system can run the static binaries provided by `ffmpeg-static`.
 
+## Commercial Support & Hosting
+
+Need a hosted version of Mini-Loom for your team? Or looking for custom features like:
+- ☁️ Cloud Storage & Sharing
+- 🔐 Team Authentication (SSO)
+- 📝 AI Transcriptions & Summaries
+- 🎨 Custom Branding & White-labeling
+
+Reach out to **dhaval@appgambit.com** to discuss your requirements.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
