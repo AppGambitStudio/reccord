@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { Video, Plus, Play, Calendar, Clock, Trash2, Edit2, Check, X, Download, Timer, Image as ImageIcon } from 'lucide-react';
 import WatermarkManager from '@/components/WatermarkManager';
+import Header from '@/components/Header';
 
 interface Recording {
   id: number;
@@ -72,15 +73,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-12">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <Video className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Reccord
-            </h1>
-          </div>
+        <Header>
           <Link
             href="/record"
             className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 font-medium shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30"
@@ -95,7 +88,7 @@ export default function Dashboard() {
             <ImageIcon className="w-5 h-5" />
             Watermarks
           </button>
-        </div>
+        </Header>
 
         <WatermarkManager isOpen={showWatermarks} onClose={() => setShowWatermarks(false)} />
 

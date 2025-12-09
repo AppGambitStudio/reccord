@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Loader2, Video, Mic, StopCircle, Upload } from 'lucide-react';
+import Header from '@/components/Header';
 import { cn } from '@/lib/utils';
 
 const Recorder = () => {
@@ -346,7 +347,7 @@ const Recorder = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-900 p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-50 text-gray-900 p-8 relative overflow-hidden">
             {/* Camera Bubble - Only show when NOT recording to prevent double bubble (one from screen capture, one from canvas) */}
             {cameraStream && !isRecording && (
                 <div className="fixed bottom-8 right-8 w-48 h-48 rounded-full border-4 border-white shadow-2xl overflow-hidden z-50 bg-black">
@@ -370,92 +371,96 @@ const Recorder = () => {
                 </div>
             )}
 
-            <div className="w-full max-w-4xl bg-white rounded-xl border border-gray-200 p-8 shadow-2xl relative z-10">
-                <div className="flex items-center justify-between mb-8">
+            <div className="max-w-6xl mx-auto">
+                <Header>
                     <button
                         onClick={() => router.push('/')}
                         className="text-gray-500 hover:text-gray-700 transition-colors font-medium flex items-center gap-2"
                     >
                         &larr; Back to Dashboard
                     </button>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        New Recording
-                    </h1>
-                    <div className="w-24" /> {/* Spacer for centering */}
-                </div>
+                </Header>
 
-                <div className="flex flex-col items-center gap-8">
-                    {previewUrl ? (
-                        <div className="w-full space-y-4">
-                            <video src={previewUrl} controls className="w-full rounded-lg border border-gray-200 bg-black aspect-video" />
-                            <div className="flex justify-center gap-4">
-                                <button
-                                    onClick={() => {
-                                        setPreviewUrl(null);
-                                        chunksRef.current = [];
-                                    }}
-                                    className="px-6 py-2 rounded-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-all font-medium shadow-sm hover:shadow-md"
-                                >
-                                    Discard
-                                </button>
-                                <button
-                                    onClick={uploadRecording}
-                                    disabled={uploading}
-                                    className="px-6 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all font-medium flex items-center gap-2 disabled:opacity-50 shadow-md hover:shadow-lg shadow-blue-600/20"
-                                >
-                                    {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload className="w-4 h-4" />}
-                                    Save Recording
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center gap-6">
-                            <div className="p-12 rounded-full bg-gray-50 border-2 border-dashed border-gray-200">
-                                <Video className="w-16 h-16 text-gray-400" />
-                            </div>
+                <div className="w-full max-w-4xl mx-auto bg-white rounded-xl border border-gray-200 p-8 shadow-2xl relative z-10">
+                    <div className="flex items-center justify-center mb-8">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            {isRecording ? "Now Reccording" : "New Recording"}
+                        </h1>
+                    </div>
 
-                            {/* Watermark Selector */}
-                            {!isRecording && watermarks.length > 0 && (
-                                <div className="w-full max-w-xs">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 text-center">Select Watermark (Optional)</label>
-                                    <select
-                                        value={selectedWatermarkId || ''}
-                                        onChange={(e) => setSelectedWatermarkId(e.target.value ? parseInt(e.target.value) : null)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                    <div className="flex flex-col items-center gap-8">
+                        {previewUrl ? (
+                            <div className="w-full space-y-4">
+                                <video src={previewUrl} controls className="w-full rounded-lg border border-gray-200 bg-black aspect-video" />
+                                <div className="flex justify-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            setPreviewUrl(null);
+                                            chunksRef.current = [];
+                                        }}
+                                        className="px-6 py-2 rounded-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-all font-medium shadow-sm hover:shadow-md"
                                     >
-                                        <option value="">None</option>
-                                        {watermarks.map(w => (
-                                            <option key={w.id} value={w.id}>{w.name} ({w.position})</option>
-                                        ))}
-                                    </select>
+                                        Discard
+                                    </button>
+                                    <button
+                                        onClick={uploadRecording}
+                                        disabled={uploading}
+                                        className="px-6 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all font-medium flex items-center gap-2 disabled:opacity-50 shadow-md hover:shadow-lg shadow-blue-600/20"
+                                    >
+                                        {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload className="w-4 h-4" />}
+                                        Save Recording
+                                    </button>
                                 </div>
-                            )}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-6">
+                                <div className="p-12 rounded-full bg-gray-50 border-2 border-dashed border-gray-200">
+                                    <Video className="w-16 h-16 text-gray-400" />
+                                </div>
 
-                            {!isRecording ? (
-                                <button
-                                    onClick={startRecording}
-                                    className="group relative px-8 py-4 rounded-full bg-red-600 hover:bg-red-700 transition-all transform hover:scale-105 shadow-xl shadow-red-600/20 text-white"
-                                >
-                                    <span className="flex items-center gap-3 text-lg font-bold">
-                                        <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
-                                        Start Recording
-                                    </span>
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={stopRecording}
-                                    className="px-8 py-4 rounded-full bg-white hover:bg-gray-50 border-2 border-red-100 text-red-600 hover:text-red-700 transition-all flex items-center gap-3 font-bold shadow-lg shadow-red-500/5"
-                                >
-                                    <StopCircle className="w-6 h-6" />
-                                    Stop Recording
-                                </button>
-                            )}
+                                {/* Watermark Selector */}
+                                {!isRecording && watermarks.length > 0 && (
+                                    <div className="w-full max-w-xs">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 text-center">Select Watermark (Optional)</label>
+                                        <select
+                                            value={selectedWatermarkId || ''}
+                                            onChange={(e) => setSelectedWatermarkId(e.target.value ? parseInt(e.target.value) : null)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                        >
+                                            <option value="">None</option>
+                                            {watermarks.map(w => (
+                                                <option key={w.id} value={w.id}>{w.name} ({w.position})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
-                            <p className="text-gray-500 text-sm">
-                                {isRecording ? "Recording in progress..." : "Capture screen and microphone"}
-                            </p>
-                        </div>
-                    )}
+                                {!isRecording ? (
+                                    <button
+                                        onClick={startRecording}
+                                        className="group relative px-8 py-4 rounded-full bg-red-600 hover:bg-red-700 transition-all transform hover:scale-105 shadow-xl shadow-red-600/20 text-white"
+                                    >
+                                        <span className="flex items-center gap-3 text-lg font-bold">
+                                            <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+                                            Start Recording
+                                        </span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={stopRecording}
+                                        className="px-8 py-4 rounded-full bg-white hover:bg-gray-50 border-2 border-red-100 text-red-600 hover:text-red-700 transition-all flex items-center gap-3 font-bold shadow-lg shadow-red-500/5"
+                                    >
+                                        <StopCircle className="w-6 h-6" />
+                                        Stop Recording
+                                    </button>
+                                )}
+
+                                <p className="text-gray-500 text-sm">
+                                    {isRecording ? "Recording in progress..." : "Capture screen and microphone"}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
