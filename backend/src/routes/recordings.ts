@@ -13,7 +13,14 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
     try {
+        const { folderId } = req.query;
+        const whereClause: any = {};
+        if (folderId !== undefined) {
+            whereClause.folderId = folderId === 'null' ? null : folderId;
+        }
+
         const recordings = await Recording.findAll({
+            where: whereClause,
             order: [['createdAt', 'DESC']],
             include: [Watermark]
         });
@@ -27,13 +34,18 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { title } = req.body;
+        const { title, folderId } = req.body;
         const recording = await Recording.findByPk(id);
         if (!recording) {
             res.status(404).send('Recording not found');
             return;
         }
-        await recording.update({ title });
+
+        const updateData: any = {};
+        if (title !== undefined) updateData.title = title;
+        if (folderId !== undefined) updateData.folderId = folderId;
+
+        await recording.update(updateData);
         res.json(recording);
     } catch (error) {
         console.error(error);

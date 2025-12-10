@@ -66,6 +66,21 @@ export const Watermark = sequelize.define('Watermark', {
 Recording.belongsTo(Watermark, { foreignKey: 'watermarkId' });
 Watermark.hasMany(Recording, { foreignKey: 'watermarkId' });
 
+export const Folder = sequelize.define('Folder', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+});
+
+Folder.hasMany(Recording, { foreignKey: 'folderId' });
+Recording.belongsTo(Folder, { foreignKey: 'folderId' });
+
 export const initDB = async () => {
     try {
         await sequelize.authenticate();

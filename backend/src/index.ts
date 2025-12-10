@@ -6,6 +6,7 @@ import { initDB } from './db';
 import uploadRoute from './routes/upload';
 import recordingsRoute from './routes/recordings';
 import watermarksRoute from './routes/watermarks';
+import folderRoutes from './routes/folders';
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -25,6 +26,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 app.use('/api/upload', uploadRoute);
 app.use('/api/recordings', recordingsRoute);
 app.use('/api/watermarks', watermarksRoute);
+app.use('/api/folders', folderRoutes);
 
 app.get('/', (req, res) => {
     res.send('Reccord Backend is running');

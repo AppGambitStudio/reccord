@@ -3,9 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { Video, Plus, Play, Calendar, Clock, Trash2, Edit2, Check, X, Download, Timer, Image as ImageIcon } from 'lucide-react';
+import { Video, Plus, Play, Calendar, Clock, Trash2, Edit2, Check, X, Download, Timer, Image as ImageIcon, FolderPlus, FolderOpen, ArrowLeft, FolderInput } from 'lucide-react';
 import WatermarkManager from '@/components/WatermarkManager';
 import Header from '@/components/Header';
+import FolderList from '@/components/FolderList';
+import CreateFolderModal from '@/components/CreateFolderModal';
+import MoveToFolderModal from '@/components/MoveToFolderModal';
 
 interface Recording {
   id: number;
@@ -14,33 +17,51 @@ interface Recording {
   thumbnailFilename?: string;
   duration?: number;
   createdAt: string;
+  folderId?: number;
   Watermark?: {
     filename: string;
     position: string;
   };
 }
 
+interface Folder {
+  id: number;
+  name: string;
+}
+
 export default function Dashboard() {
   const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [showWatermarks, setShowWatermarks] = useState(false);
+  const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [moveModalRecordingId, setMoveModalRecordingId] = useState<number | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const foldersRes = await api.get('/folders');
+      setFolders(foldersRes.data);
+
+      const recordingsRes = await api.get('/recordings', {
+        params: { folderId: currentFolderId || 'null' }
+      });
+      setRecordings(recordingsRes.data);
+    } catch (err) {
+      console.error("Failed to fetch data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRecordings = async () => {
-      try {
-        const res = await api.get('/recordings');
-        setRecordings(res.data);
-      } catch (err) {
-        console.error("Failed to fetch recordings", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRecordings();
-  }, []);
+    fetchData();
+  }, [currentFolderId]);
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -70,47 +91,107 @@ export default function Dashboard() {
     }
   }
 
+  const getCurrentFolderName = () => {
+    if (!currentFolderId) return null;
+    return folders.find(f => f.id === currentFolderId)?.name;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Header>
-          <Link
-            href="/record"
-            className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 font-medium shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30"
-          >
-            <Plus className="w-5 h-5" />
-            New Recording
-          </Link>
-          <button
-            onClick={() => setShowWatermarks(true)}
-            className="px-4 py-3 rounded-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-all flex items-center gap-2 font-medium shadow-sm hover:shadow-md"
-          >
-            <ImageIcon className="w-5 h-5" />
-            Watermarks
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/record"
+              className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 font-medium shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              New Video
+            </Link>
+            {!currentFolderId && (
+              <button
+                onClick={() => setShowCreateFolder(true)}
+                className="px-5 py-2.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-all flex items-center gap-2 font-medium shadow-sm hover:shadow-md text-sm"
+              >
+                <FolderPlus className="w-4 h-4" />
+                New Folder
+              </button>
+            )}
+            <button
+              onClick={() => setShowWatermarks(true)}
+              className="px-5 py-2.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 transition-all flex items-center gap-2 font-medium shadow-sm hover:shadow-md text-sm"
+            >
+              <ImageIcon className="w-4 h-4" />
+              Watermarks
+            </button>
+          </div>
         </Header>
 
         <WatermarkManager isOpen={showWatermarks} onClose={() => setShowWatermarks(false)} />
+        <CreateFolderModal
+          isOpen={showCreateFolder}
+          onClose={() => setShowCreateFolder(false)}
+          onCreated={fetchData}
+        />
+        <MoveToFolderModal
+          isOpen={!!moveModalRecordingId}
+          onClose={() => setMoveModalRecordingId(null)}
+          onMoved={fetchData}
+          recordingId={moveModalRecordingId}
+          folders={folders}
+        />
 
+        {/* Breadcrumbs / Navigation */}
+        {currentFolderId && (
+          <div className="mb-6 flex items-center gap-2 text-lg font-medium text-gray-600">
+            <button
+              onClick={() => setCurrentFolderId(null)}
+              className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back to Home
+            </button>
+            <span className="text-gray-300">/</span>
+            <span className="text-gray-900 flex items-center gap-2">
+              <FolderOpen className="w-5 h-5 text-blue-500" />
+              {getCurrentFolderName()}
+            </span>
+          </div>
+        )}
+
+        {/* Folders List (Only on Home) */}
+        {!currentFolderId && (
+          <FolderList
+            folders={folders}
+            onFolderClick={setCurrentFolderId}
+            onUpdate={fetchData}
+          />
+        )}
+
+        {/* Recordings Grid */}
         {loading ? (
-          <div className="text-center text-gray-500 py-20">Loading recordings...</div>
+          <div className="text-center text-gray-500 py-20">Loading...</div>
         ) : recordings.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-gray-200 border-dashed shadow-sm">
             <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No recordings yet</h3>
-            <p className="text-gray-500 mb-6">Start recording your screen and camera today.</p>
-            <Link
-              href="/record"
-              className="px-6 py-2 rounded-full bg-white hover:bg-gray-50 border border-gray-200 transition-all inline-flex items-center gap-2 text-gray-700 font-medium shadow-sm hover:shadow-md"
-            >
-              <Plus className="w-4 h-4" />
-              Record First Video
-            </Link>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No recordings found</h3>
+            <p className="text-gray-500 mb-6">
+              {currentFolderId ? "This folder is empty." : "Start recording your screen and camera today."}
+            </p>
+            {!currentFolderId && (
+              <Link
+                href="/record"
+                className="px-6 py-2 rounded-full bg-white hover:bg-gray-50 border border-gray-200 transition-all inline-flex items-center gap-2 text-gray-700 font-medium shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                Record First Video
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recordings.map((rec) => (
-              <div key={rec.id} className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-blue-300 transition-all hover:shadow-xl hover:shadow-blue-500/10">
+              <div key={rec.id} className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-blue-300 transition-all hover:shadow-xl hover:shadow-blue-500/10 flex flex-col">
                 <div className="aspect-video bg-gray-100 relative">
                   {rec.thumbnailFilename ? (
                     <img
@@ -125,8 +206,6 @@ export default function Dashboard() {
                     />
                   )}
 
-
-
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                     <a
                       href={`http://localhost:5005/recordings/${rec.filename}`}
@@ -137,7 +216,8 @@ export default function Dashboard() {
                     </a>
                   </div>
                 </div>
-                <div className="p-5">
+
+                <div className="p-5 flex-1 flex flex-col">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     {editingId === rec.id ? (
                       <div className="flex items-center gap-2 flex-1">
@@ -164,6 +244,9 @@ export default function Dashboard() {
                           <button onClick={() => startEditing(rec)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Rename">
                             <Edit2 className="w-4 h-4" />
                           </button>
+                          <button onClick={() => setMoveModalRecordingId(rec.id)} className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors" title="Move to Folder">
+                            <FolderInput className="w-4 h-4" />
+                          </button>
                           <a
                             href={`http://localhost:5005/api/recordings/${rec.id}/export`}
                             target="_blank"
@@ -179,21 +262,20 @@ export default function Dashboard() {
                       </>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(rec.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" />
-                      {new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    {rec.duration && (
-                      <div className="flex items-center gap-1.5 text-blue-600 font-medium">
-                        <Timer className="w-4 h-4" />
-                        {new Date(rec.duration * 1000).toISOString().substr(11, 8)}
+
+                  <div className="mt-auto flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(rec.createdAt).toLocaleDateString()}
                       </div>
-                    )}
+                      {rec.duration && (
+                        <div className="flex items-center gap-1.5 text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded text-xs">
+                          <Timer className="w-3 h-3" />
+                          {new Date(rec.duration * 1000).toISOString().substr(11, 8)}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
