@@ -19,13 +19,17 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.post('/', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]), async (req, res) => {
+    console.log('[UPLOAD] Request received');
     // @ts-ignore
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
     if (!files || !files['video']) {
+        console.log('[UPLOAD] No video file in request');
         res.status(400).send('No video file uploaded.');
         return;
     }
+
+    console.log('[UPLOAD] Video file received, size:', files['video'][0].size, 'bytes');
 
     try {
         const videoFile = files['video'][0];
@@ -97,6 +101,7 @@ router.post('/', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'thumbna
             duration: req.body.duration ? parseInt(req.body.duration) : null,
             watermarkId: watermarkId,
         });
+        console.log('[UPLOAD] Recording saved to database, ID:', recording.get('id'));
         res.json(recording);
     } catch (error) {
         console.error(error);

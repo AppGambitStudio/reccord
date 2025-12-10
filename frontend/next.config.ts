@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  experimental: {
+    proxyTimeout: 300000, // 5 minutes for large video uploads
+  },
   async rewrites() {
     console.log('Backend URL for rewrites:', process.env.BACKEND_URL);
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5005';

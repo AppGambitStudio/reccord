@@ -3,6 +3,8 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    ports:
+      - "5005:5005" # Expose for direct uploads (bypasses Next.js proxy limits)
     volumes:
       - ./recordings:/app/recordings
       - ./uploads:/app/uploads
@@ -23,6 +25,7 @@ services:
       - "3100:3000"
     environment:
       - BACKEND_URL=http://backend:5005
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:5005 # For client-side direct uploads
     depends_on:
       - backend
     restart: always

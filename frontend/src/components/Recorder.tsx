@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import axios from 'axios';
 import { Loader2, Video, Mic, StopCircle, Upload } from 'lucide-react';
 import Header from '@/components/Header';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ const Recorder = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [countdown, setCountdown] = useState<number | null>(null);
     const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
@@ -319,6 +321,7 @@ const Recorder = () => {
         if (!chunksRef.current.length) return;
 
         setUploading(true);
+        setUploadProgress(0);
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
 
         // Generate thumbnail
@@ -336,13 +339,26 @@ const Recorder = () => {
         }
 
         try {
-            await api.post('/upload', formData);
+            // Use direct backend URL to bypass Next.js proxy limits
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5005';
+            await axios.post(`${backendUrl}/api/upload`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setUploadProgress(percentCompleted);
+                    }
+                },
+            });
             router.push('/'); // Go back to dashboard
         } catch (err) {
             console.error("Upload failed:", err);
             alert("Upload failed");
         } finally {
             setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -392,6 +408,23 @@ const Recorder = () => {
                         {previewUrl ? (
                             <div className="w-full space-y-4">
                                 <video src={previewUrl} controls className="w-full rounded-lg border border-gray-200 bg-black aspect-video" />
+
+                                {/* Upload Progress Bar */}
+                                {uploading && (
+                                    <div className="w-full space-y-2">
+                                        <div className="flex justify-between text-sm text-gray-600">
+                                            <span>Uploading...</span>
+                                            <span>{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <div
+                                                className="bg-blue-600 h-full transition-all duration-300 ease-out"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-center gap-4">
                                     <button
                                         onClick={() => {
