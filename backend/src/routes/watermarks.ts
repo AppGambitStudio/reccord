@@ -8,7 +8,8 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '../../../uploads/watermarks');
+        const uploadsPath = process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads');
+        const uploadDir = path.join(uploadsPath, 'watermarks');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -63,7 +64,9 @@ router.delete('/:id', async (req, res) => {
         }
 
         // @ts-ignore
-        const filePath = path.join(__dirname, '../../../uploads/watermarks', watermark.filename);
+        const uploadsPath = process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads');
+        // @ts-ignore
+        const filePath = path.join(uploadsPath, 'watermarks', watermark.filename);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }

@@ -195,20 +195,20 @@ export default function Dashboard() {
                 <div className="aspect-video bg-gray-100 relative">
                   {rec.thumbnailFilename ? (
                     <img
-                      src={`http://localhost:5005/recordings/${rec.thumbnailFilename}`}
+                      src={`/recordings/${rec.thumbnailFilename}`}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                       alt={rec.title}
                     />
                   ) : (
                     <video
-                      src={`http://localhost:5005/recordings/${rec.filename}`}
+                      src={`/recordings/${rec.filename}`}
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />
                   )}
 
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                     <a
-                      href={`http://localhost:5005/recordings/${rec.filename}`}
+                      href={`/recordings/${rec.filename}`}
                       target="_blank"
                       className="p-4 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
                     >
@@ -248,7 +248,7 @@ export default function Dashboard() {
                             <FolderInput className="w-4 h-4" />
                           </button>
                           <a
-                            href={`http://localhost:5005/api/recordings/${rec.id}/export`}
+                            href={`/api/recordings/${rec.id}/export`}
                             target="_blank"
                             className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
                             title="Export to MP4"

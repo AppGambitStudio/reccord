@@ -15,12 +15,12 @@ app.use(cors());
 app.use(express.json());
 
 // Serve recordings statically
-const RECORDINGS_DIR = path.join(__dirname, '../../recordings');
+const RECORDINGS_DIR = process.env.RECORDINGS_PATH || path.join(__dirname, '../../recordings');
 if (!fs.existsSync(RECORDINGS_DIR)) {
     fs.mkdirSync(RECORDINGS_DIR);
 }
 app.use('/recordings', express.static(RECORDINGS_DIR));
-app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+app.use('/uploads', express.static(process.env.UPLOADS_PATH || path.join(__dirname, '../../uploads')));
 
 // API Routes
 app.use('/api/upload', uploadRoute);

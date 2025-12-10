@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    volumes:
+      - ./recordings:/app/recordings
+      - ./uploads:/app/uploads
+      - ./dev.db:/app/dev.db
+    environment:
+      - PORT=5005
+      - DB_PATH=/app/dev.db
+      - RECORDINGS_PATH=/app/recordings
+      - UPLOADS_PATH=/app/uploads
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://backend:5005
+    ports:
+      - "3100:3000"
+    environment:
+      - BACKEND_URL=http://backend:5005
+    depends_on:
+      - backend
+    restart: always

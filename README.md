@@ -31,7 +31,25 @@ Reccord is a powerful, open-source local screen recording application built with
 
 ## Setup & Running
 
-### 1. Backend
+### Using Docker (Recommended)
+
+This is the easiest way to get up and running locally.
+
+1.  **Prerequisites**: Ensure Docker and Docker Compose are installed.
+2.  **Start Services**:
+    ```bash
+    docker compose up --build
+    ```
+3.  **Access App**: Open `http://localhost:3100` in your browser.
+
+- The Backend is running internally and is NOT exposed publicly.
+- `dev.db`, `recordings/`, and `uploads/` are mounted as volumes for persistence.
+
+### Manual Setup (Development)
+
+If you want to run the services individually for development:
+
+#### 1. Backend
 
 The backend handles file storage, database operations, and video processing. It runs on port **5005**.
 
@@ -45,18 +63,19 @@ npm run dev
 
 ### 2. Frontend
 
-The frontend provides the user interface for recording and managing videos. It runs on port **5006**.
+The frontend provides the user interface for recording and managing videos. It runs on port **3000**.
 
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-- App URL: `http://localhost:5006`
+
+- App URL: `http://localhost:3000`
 
 ## Usage
 
-1.  Open `http://localhost:5006` in your browser.
+1.  Open the application in your browser (`http://localhost:3100` for Docker, `http://localhost:3000` for manual).
 2.  Click **"New Recording"** to start the recording flow.
 3.  Grant necessary permissions for screen and microphone access.
 4.  After recording, save your video.

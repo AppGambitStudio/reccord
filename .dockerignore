@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.env
+recordings
+uploads
+dev.db
+backend/node_modules
+frontend/node_modules
+frontend/.next

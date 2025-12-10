@@ -19,6 +19,8 @@ router.get('/', async (req, res) => {
             whereClause.folderId = folderId === 'null' ? null : folderId;
         }
 
+        console.log('Fetching recordings with whereClause:', whereClause);
+
         const recordings = await Recording.findAll({
             where: whereClause,
             order: [['createdAt', 'DESC']],
@@ -65,7 +67,8 @@ router.delete('/:id', async (req, res) => {
         // Delete file
         // @ts-ignore
         const filename = recording.filename;
-        const filePath = path.join(__dirname, '../../../recordings', filename);
+        const recordingsPath = process.env.RECORDINGS_PATH || path.join(__dirname, '../../../recordings');
+        const filePath = path.join(recordingsPath, filename);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
@@ -92,8 +95,9 @@ router.get('/:id/export', async (req, res) => {
         // @ts-ignore
         const watermarkId = recording.watermarkId;
 
-        const inputPath = path.join(__dirname, '../../../recordings', filename);
-        const outputPath = path.join(__dirname, '../../../recordings', `export-${id}.mp4`);
+        const recordingsPath = process.env.RECORDINGS_PATH || path.join(__dirname, '../../../recordings');
+        const inputPath = path.join(recordingsPath, filename);
+        const outputPath = path.join(recordingsPath, `export-${id}.mp4`);
 
         if (!fs.existsSync(inputPath)) {
             res.status(404).send('Source file not found');

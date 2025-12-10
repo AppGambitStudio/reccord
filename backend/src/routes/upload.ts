@@ -7,7 +7,8 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../../../recordings'));
+        const uploadPath = process.env.RECORDINGS_PATH || path.join(__dirname, '../../../recordings');
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -43,7 +44,8 @@ router.post('/', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'thumbna
             if (watermark) {
                 const inputPath = videoFile.path;
                 const tempOutputPath = path.join(path.dirname(inputPath), `temp-${videoFile.filename}`);
-                const watermarkPath = path.join(__dirname, '../../../uploads/watermarks', watermark.filename);
+                const uploadsPath = process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads');
+                const watermarkPath = path.join(uploadsPath, 'watermarks', watermark.filename);
 
                 if (fs.existsSync(watermarkPath)) {
                     console.log(`Burning in watermark: ${watermarkPath} at ${watermark.position}`);

@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import path from 'path';
 
-const dbPath = path.join(__dirname, '../../dev.db');
+const dbPath = process.env.DB_PATH || path.join(__dirname, '../../dev.db');
 
 const sequelize = new Sequelize({
     dialect: 'sqlite',
@@ -37,6 +37,10 @@ export const Recording = sequelize.define('Recording', {
         defaultValue: DataTypes.NOW,
     },
     watermarkId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    folderId: {
         type: DataTypes.INTEGER,
         allowNull: true,
     }
