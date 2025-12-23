@@ -2,9 +2,7 @@
 
 Reccord is a powerful, open-source local screen recording application built with modern web technologies. It allows you to capture your screen, microphone, and camera with ease, saving everything locally for privacy and speed.
 
-<video src="assets/demo.mp4" controls="controls" style="max-width: 100%;">
-  Your browser does not support the video tag.
-</video>
+###  Check our showcase site for more details: [Antigravity Apps](https://antigravityapps.dev/)
 
 ## Features
 
