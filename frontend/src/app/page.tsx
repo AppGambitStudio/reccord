@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useCallback } from 'react';
 import api from '@/lib/api';
-import { Video, Plus, Play, Calendar, Clock, Trash2, Edit2, Check, X, Download, Timer, Image as ImageIcon, FolderPlus, FolderOpen, ArrowLeft, FolderInput } from 'lucide-react';
+import { Video, Plus, Play, Calendar, Clock, Trash2, Edit2, Check, X, Download, Timer, Image as ImageIcon, FolderPlus, FolderOpen, ArrowLeft, FolderInput, Loader2 } from 'lucide-react';
 import WatermarkManager from '@/components/WatermarkManager';
+import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
 import FolderList from '@/components/FolderList';
 import CreateFolderModal from '@/components/CreateFolderModal';
@@ -18,6 +20,7 @@ interface Recording {
   duration?: number;
   createdAt: string;
   folderId?: number;
+  status?: 'completed' | 'processing' | 'failed';
   Watermark?: {
     filename: string;
     position: string;
@@ -30,9 +33,12 @@ interface Folder {
 }
 
 export default function Dashboard() {
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialFolderId = searchParams?.get('folderId');
+
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(initialFolderId ? parseInt(initialFolderId) : null);
 
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -42,8 +48,8 @@ export default function Dashboard() {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [moveModalRecordingId, setMoveModalRecordingId] = useState<number | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const foldersRes = await api.get('/folders');
       setFolders(foldersRes.data);
@@ -55,13 +61,20 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [currentFolderId]);
 
   useEffect(() => {
     fetchData();
-  }, [currentFolderId]);
+  }, [fetchData]);
+
+  // Polling for processing status or new recordings
+  useEffect(() => {
+    // Poll aggressively (every 2 seconds) to ensure new recordings appear instantly
+    const interval = setInterval(() => fetchData(true), 2000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -102,7 +115,7 @@ export default function Dashboard() {
         <Header>
           <div className="flex items-center gap-3">
             <Link
-              href="/record"
+              href={`/record${currentFolderId ? `?folderId=${currentFolderId}` : ''}`}
               className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 font-medium shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 text-sm"
             >
               <Plus className="w-4 h-4" />
@@ -206,15 +219,40 @@ export default function Dashboard() {
                     />
                   )}
 
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                    <a
-                      href={`/recordings/${rec.filename}`}
-                      target="_blank"
-                      className="p-4 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
-                    >
-                      <Play className="w-8 h-8 text-white fill-current" />
-                    </a>
+                  <div className={cn(
+                    "absolute inset-0 flex items-center justify-center transition-opacity bg-black/40",
+                    rec.status === 'processing' ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  )}>
+                    {rec.status === 'processing' ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-12 h-12 text-white animate-spin" />
+                        <span className="text-white font-medium">Processing...</span>
+                      </div>
+                    ) : rec.status === 'failed' ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <X className="w-12 h-12 text-red-500" />
+                        <span className="text-white font-medium">Processing Failed</span>
+                      </div>
+                    ) : (
+                      <a
+                        href={`/recordings/${rec.filename}`}
+                        target="_blank"
+                        className="p-4 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+                      >
+                        <Play className="w-8 h-8 text-white fill-current" />
+                      </a>
+                    )}
                   </div>
+
+                  {/* Status Badge */}
+                  {rec.status && rec.status !== 'completed' && (
+                    <div className={cn(
+                      "absolute top-3 right-3 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm",
+                      rec.status === 'processing' ? "bg-amber-500 text-white" : "bg-red-600 text-white"
+                    )}>
+                      {rec.status}
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col">
@@ -241,21 +279,51 @@ export default function Dashboard() {
                           {rec.title}
                         </h3>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => startEditing(rec)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="Rename">
+                          <button
+                            onClick={() => startEditing(rec)}
+                            disabled={rec.status === 'processing'}
+                            className={cn(
+                              "p-1.5 rounded-full transition-colors",
+                              rec.status === 'processing' ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                            )}
+                            title={rec.status === 'processing' ? "Processing..." : "Rename"}
+                          >
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => setMoveModalRecordingId(rec.id)} className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors" title="Move to Folder">
+                          <button
+                            onClick={() => setMoveModalRecordingId(rec.id)}
+                            disabled={rec.status === 'processing'}
+                            className={cn(
+                              "p-1.5 rounded-full transition-colors",
+                              rec.status === 'processing' ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:text-purple-600 hover:bg-purple-50"
+                            )}
+                            title={rec.status === 'processing' ? "Processing..." : "Move to Folder"}
+                          >
                             <FolderInput className="w-4 h-4" />
                           </button>
                           <a
-                            href={`/api/recordings/${rec.id}/export`}
+                            href={rec.status === 'completed' ? `/api/recordings/${rec.id}/export` : '#'}
+                            onClick={(e) => rec.status !== 'completed' && e.preventDefault()}
                             target="_blank"
-                            className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                            title="Export to MP4"
+                            className={cn(
+                              "p-1.5 rounded-full transition-colors",
+                              rec.status === 'completed'
+                                ? "text-gray-500 hover:text-green-600 hover:bg-green-50"
+                                : "text-gray-300 cursor-not-allowed"
+                            )}
+                            title={rec.status === 'completed' ? "Export to MP4" : "Processing..."}
                           >
                             <Download className="w-4 h-4" />
                           </a>
-                          <button onClick={() => setDeleteId(rec.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors" title="Delete">
+                          <button
+                            onClick={() => setDeleteId(rec.id)}
+                            disabled={rec.status === 'processing'}
+                            className={cn(
+                              "p-1.5 rounded-full transition-colors",
+                              rec.status === 'processing' ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                            )}
+                            title={rec.status === 'processing' ? "Processing..." : "Delete"}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
             order: [['createdAt', 'DESC']],
             include: [Watermark]
         });
+        console.log(`[RECORDINGS] Found ${recordings.length} recordings. Statuses:`, recordings.map((r: any) => `${r.id}:${r.status}`).join(', '));
         res.json(recordings);
     } catch (error) {
         console.error(error);

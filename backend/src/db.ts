@@ -43,6 +43,11 @@ export const Recording = sequelize.define('Recording', {
     folderId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+    },
+    status: {
+        type: DataTypes.STRING, // 'processing', 'completed', 'failed'
+        allowNull: false,
+        defaultValue: 'completed',
     }
 });
 

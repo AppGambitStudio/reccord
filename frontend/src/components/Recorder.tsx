@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import axios from 'axios';
 import { Loader2, Video, Mic, StopCircle, Upload } from 'lucide-react';
@@ -22,6 +22,13 @@ const Recorder = () => {
     const chunksRef = useRef<Blob[]>([]);
     const streamRef = useRef<MediaStream | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const folderId = searchParams.get('folderId');
+
+    useEffect(() => {
+        // Prefetch dashboard for faster redirect
+        router.prefetch('/');
+    }, [router]);
 
     const [watermarks, setWatermarks] = useState<any[]>([]);
     const [selectedWatermarkId, setSelectedWatermarkId] = useState<number | null>(null);
@@ -337,7 +344,9 @@ const Recorder = () => {
         if (selectedWatermarkId) {
             formData.append('watermarkId', selectedWatermarkId.toString());
         }
-
+        if (folderId) {
+            formData.append('folderId', folderId);
+        }
         try {
             // Use direct backend URL to bypass Next.js proxy limits
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5005';
@@ -352,7 +361,9 @@ const Recorder = () => {
                     }
                 },
             });
-            router.push('/'); // Go back to dashboard
+            setUploadProgress(100); // Ensure it shows 100%
+            const targetUrl = folderId ? `/?folderId=${folderId}` : '/';
+            router.push(targetUrl); // Go back to dashboard
         } catch (err) {
             console.error("Upload failed:", err);
             alert("Upload failed");
@@ -413,12 +424,15 @@ const Recorder = () => {
                                 {uploading && (
                                     <div className="w-full space-y-2">
                                         <div className="flex justify-between text-sm text-gray-600">
-                                            <span>Uploading...</span>
+                                            <span>{uploadProgress === 100 ? "Upload Complete! Redirecting..." : "Uploading..."}</span>
                                             <span>{uploadProgress}%</span>
                                         </div>
                                         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                             <div
-                                                className="bg-blue-600 h-full transition-all duration-300 ease-out"
+                                                className={cn(
+                                                    "h-full transition-all duration-300 ease-out",
+                                                    uploadProgress === 100 ? "bg-green-500 animate-pulse" : "bg-blue-600"
+                                                )}
                                                 style={{ width: `${uploadProgress}%` }}
                                             />
                                         </div>
