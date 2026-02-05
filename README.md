@@ -36,6 +36,7 @@ This is the easiest way to get up and running locally.
 1.  **Prerequisites**: Ensure Docker and Docker Compose are installed.
 2.  **Start Services**:
     ```bash
+    mkdir -p recordings uploads && touch dev.db
     docker compose up --build
     ```
 3.  **Access App**: Open `http://localhost:3100` in your browser.
@@ -81,7 +82,8 @@ npm run dev
 
 ## Troubleshooting
 
-- **Ports**: Ensure ports 5005 and 5006 are free.
+- **Ports**: Ensure ports 5005 and 3100 are free.
+- **Database Error**: If you see `SQLITE_CANTOPEN`, ensure `dev.db` is a file, not a directory. Run `rm -rf dev.db && touch dev.db` before starting Docker.
 - **Permissions**: You must allow camera/microphone access in your browser when prompted.
 - **Video Export**: Exporting uses FFmpeg. Ensure your system can run the static binaries provided by `ffmpeg-static`.
 

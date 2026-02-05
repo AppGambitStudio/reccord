@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import Recorder from '@/components/Recorder';
 
 export default function RecordPage() {
-    return <Recorder />;
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <Recorder />
+        </Suspense>
+    );
 }
