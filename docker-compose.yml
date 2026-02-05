@@ -22,7 +22,7 @@ services:
       args:
         BACKEND_URL: http://backend:5005
     ports:
-      - "3100:3000"
+      - "3100:3101"
     environment:
       - BACKEND_URL=http://backend:5005
       - NEXT_PUBLIC_BACKEND_URL=http://localhost:5005 # For client-side direct uploads

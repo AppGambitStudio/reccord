@@ -81,7 +81,8 @@ npm run dev
 
 ## Troubleshooting
 
-- **Ports**: Ensure ports 5005 and 5006 are free.
+- **Ports**: Ensure ports 5005 and 3100 are free.
+- **Database Error**: If you see `SQLITE_CANTOPEN`, ensure `dev.db` is a file, not a directory. Run `rm -rf dev.db && touch dev.db` before starting Docker.
 - **Permissions**: You must allow camera/microphone access in your browser when prompted.
 - **Video Export**: Exporting uses FFmpeg. Ensure your system can run the static binaries provided by `ffmpeg-static`.
 
