@@ -36,6 +36,7 @@ This is the easiest way to get up and running locally.
 1.  **Prerequisites**: Ensure Docker and Docker Compose are installed.
 2.  **Start Services**:
     ```bash
+    mkdir -p recordings uploads && touch dev.db
     docker compose up --build
     ```
 3.  **Access App**: Open `http://localhost:3100` in your browser.
